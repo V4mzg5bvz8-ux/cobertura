@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Control de Coberturas por Cliente</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    background: #eef1f5;
+    color: #1a1a2e;
+  }
+  header {
+    background: #0f1830;
+    color: #fff;
+    padding: 24px 18px 18px;
+  }
+  header h1 {
+    margin: 0 0 16px;
+    font-size: 1.6rem;
+    line-height: 1.25;
+  }
+  .stats {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .stat-box {
+    flex: 1;
+    background: #1c2a4a;
+    border-radius: 10px;
+    padding: 12px 4px;
+    text-align: center;
+  }
+  .stat-box .num {
+    font-size: 1.4rem;
+    font-weight: 700;
+  }
+  .stat-box .label {
+    font-size: 0.7rem;
+    opacity: 0.85;
+    margin-top: 2px;
+  }
+  #search {
+    width: 100%;
+    padding: 14px 16px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    margin-bottom: 12px;
+  }
+  #diaSelect {
+    width: 100%;
+    padding: 14px 16px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    margin-bottom: 10px;
+    font-weight: 700;
+    background: #fff;
+    color: #0f1830;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .meta-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #1c2a4a;
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+  }
+  .meta-row label {
+    flex: 1;
+    font-size: 0.85rem;
+    color: #fff;
+  }
+  .meta-row input {
+    width: 70px;
+    padding: 8px 10px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    text-align: center;
+    font-weight: 700;
+  }
+  .meta-alert {
+    background: #2ecc71;
+    color: #fff;
+    padding: 12px 16px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    text-align: center;
+  }
+  .btn-row {
+    display: flex;
+    gap: 10px;
+  }
+  button {
+    border: none;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-red { background: #e84545; color: #fff; }
+  .btn-green { background: #2ecc71; color: #fff; }
+  .btn-gray { background: #3a4a6b; color: #fff; }
+
+  .info-banner {
+    background: #fff;
+    margin: 14px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    font-size: 0.92rem;
+    line-height: 1.4;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+
+  .table-wrap {
+    margin: 0 14px 90px;
+    overflow-x: auto;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 420px;
+    background: #fff;
+  }
+  thead th {
+    background: #0f1830;
+    color: #fff;
+    padding: 8px 4px;
+    font-size: 0.78rem;
+    text-align: center;
+    position: sticky;
+    top: 0;
+  }
+  thead th.client-col {
+    text-align: left;
+    min-width: 120px;
+  }
+  tbody td {
+    padding: 8px 3px;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+    font-size: 0.85rem;
+  }
+  tbody td.client-name {
+    text-align: left;
+    font-weight: 700;
+    font-size: 0.85rem;
+    max-width: 120px;
+  }
+  .client-name input.name-edit {
+    border: none;
+    background: transparent;
+    font-weight: 700;
+    font-size: 0.85rem;
+    width: 100%;
+    font-family: inherit;
+  }
+  tr.estado-rojo { background: #fdeaea; }
+  tr.estado-naranja { background: #fff3e0; }
+  tr.estado-verde { background: #e6f9ee; }
+
+  @media (max-width: 480px) {
+    .col-estado { display: none; }
+  }
+
+  input[type="checkbox"] {
+    width: 22px;
+    height: 22px;
+    accent-color: #2ecc71;
+    cursor: pointer;
+  }
+
+  .estado-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #fff;
+  }
+  .badge-rojo { background: #e84545; }
+  .badge-naranja { background: #f5a623; }
+  .badge-verde { background: #2ecc71; }
+
+  .del-btn {
+    background: #ccc;
+    color: #444;
+    border: none;
+    border-radius: 6px;
+    width: 26px;
+    height: 26px;
+    font-size: 0.9rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .add-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #fff;
+    padding: 10px 14px;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.12);
+    display: flex;
+    gap: 8px;
+  }
+  .add-bar input {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 0.95rem;
+  }
+  .add-bar button {
+    background: #2ecc71;
+    color: #fff;
+    padding: 0 18px;
+  }
+
+  .top-actions {
+    margin: 14px;
+    display: flex;
+    gap: 10px;
+  }
+  #diaTituloBar {
+    background: #0f1830;
+    color: #fff;
+    text-align: center;
+    padding: 8px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+  }
+
+  @media (min-width: 700px) {
+    .table-wrap { margin-bottom: 20px; }
+    .add-bar { position: static; box-shadow: none; margin: 0 14px 20px; border-radius: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Control de Coberturas por Cliente</h1>
+  <div class="stats">
+    <div class="stat-box">
+      <div class="num" id="statClientes">0</div>
+      <div class="label">Clientes</div>
+    </div>
+    <div class="stat-box">
+      <div class="num" id="statCoberturas">0</div>
+      <div class="label">Coberturas</div>
+    </div>
+    <div class="stat-box">
+      <div class="num" id="statFaltan">0</div>
+      <div class="label">Faltan</div>
+    </div>
+    <div class="stat-box">
+      <div class="num" id="statAvance">0%</div>
+      <div class="label">Avance</div>
+    </div>
+  </div>
+  <div class="meta-row">
+    <label for="metaInput">Meta de clientes para cumplir cobertura:</label>
+    <input type="number" id="metaInput" min="1" placeholder="Ej: 18">
+  </div>
+  <div id="metaAlert" class="meta-alert" style="display:none;">
+    🎉 ¡Cobertura del 100% cumplida! Ya marcaste la meta de clientes.
+  </div>
+  <select id="diaSelect">
+    <option value="lunes">Lunes</option>
+    <option value="martes">Martes</option>
+    <option value="miercoles">Miércoles</option>
+    <option value="jueves" selected>Jueves</option>
+    <option value="viernes">Viernes</option>
+    <option value="sabado">Sábado</option>
+  </select>
+  <input type="text" id="search" placeholder="Buscar cliente...">
+  <div class="btn-row">
+    <button class="btn-red" id="limpiarBtn">Limpiar marcas del día</button>
+    <button class="btn-gray" id="exportBtn">Exportar</button>
+  </div>
+</header>
+
+<div class="info-banner">
+  Selecciona el día arriba y marca los casilleros de ese día. 0 productos = rojo, 1 a 3 = naranja, 4 = verde / cobertura realizada.
+</div>
+
+<div class="table-wrap">
+  <div id="diaTituloBar"></div>
+  <table>
+    <thead>
+      <tr>
+        <th class="client-col">Cliente</th>
+        <th>Silver<br>710cc</th>
+        <th>Coors<br>710cc</th>
+        <th>Sol<br>650cc</th>
+        <th>Golden<br>650cc</th>
+        <th class="col-estado">Estado</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="tablaBody"></tbody>
+  </table>
+</div>
+
+<div class="add-bar">
+  <input type="text" id="nuevoClienteInput" placeholder="Nombre del nuevo cliente...">
+  <button id="agregarBtn">Agregar</button>
+</div>
+
+<script>
+const STORAGE_KEY = 'coberturas_data_v2';
+const STORAGE_KEY_META = 'coberturas_meta_v1';
+const PRODUCTOS = ['silver', 'coors', 'sol', 'golden'];
+const DIAS = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
+const DIAS_LABEL = {
+  lunes: 'LUNES', martes: 'MARTES', miercoles: 'MIÉRCOLES',
+  jueves: 'JUEVES', viernes: 'VIERNES', sabado: 'SÁBADO'
+};
+
+const clientesDefault = [
+  { nombre: "MEZA ALVAREZ BENEDICTA", dia: "viernes" },
+  { nombre: "VASQUEZ NAVARRO ROSA", dia: "viernes" },
+  { nombre: "CARMEN PINEDA MUÑOZ", dia: "viernes" },
+  { nombre: "JUDITH E. CASTILLO VIDAL", dia: "viernes" },
+  { nombre: "JEREZ LLANOS GERARDO", dia: "viernes" },
+  { nombre: "ROSE OSSES REYES", dia: "viernes" },
+  { nombre: "MANUEL ESPINOZA M.E HIJA LTDA", dia: "viernes" },
+  { nombre: "CRISTIAN VARGAS ZAMUDIO", dia: "viernes" },
+  { nombre: "CARLOS ARANCIBIA GONZALEZ", dia: "viernes" },
+  { nombre: "CHRISTIAN MONETTA NUÁÑEZ", dia: "viernes" },
+  { nombre: "PABLO NARVAEZ VELIZ", dia: "viernes" },
+  { nombre: "BOTILLERIA EL PINO SPA", dia: "viernes" },
+  { nombre: "ROSITA ALEJANDRA PIZARRO BUSTOS", dia: "viernes" },
+  { nombre: "MARCOS EUGENIO TONDRO GALVEZ", dia: "viernes" },
+  { nombre: "CAMILO ANTONIO ZENTENO NEIPAN", dia: "viernes" },
+  { nombre: "INVERSIONES Q&P SPA.", dia: "viernes" },
+  { nombre: "CELIA MARQUEZ VIDAL", dia: "sabado" },
+  { nombre: "VASQUEZ ROMERO BERNARDO", dia: "sabado" },
+  { nombre: "CESAR CARCAMO ALVAREZ", dia: "sabado" },
+  { nombre: "OLGA MONTENEGRO ARAYA", dia: "sabado" },
+  { nombre: "COM LA CASTELLANA LTDA", dia: "sabado" },
+  { nombre: "SUAREZ Y CIA", dia: "sabado" },
+  { nombre: "RICHARD NEIRA CARRILLO", dia: "sabado" },
+  { nombre: "FLORES Y LEAL LTDA.", dia: "sabado" },
+  { nombre: "GERMAN VILCANAUPA CANCHURICRA", dia: "sabado" },
+  { nombre: "BOTILLERIA MI COMPADRE", dia: "sabado" },
+  { nombre: "BOT. PATRICIO VELASQUEZ BRISO EIRL", dia: "sabado" },
+  { nombre: "JCP CISTERNAS SPA", dia: "sabado" },
+  { nombre: "CATALINA PAZ CERDA VILLALOBOS", dia: "sabado" },
+  { nombre: "RICARDO ANTONIO PONCE ZAGAL", dia: "sabado" },
+  { nombre: "VILCAÑAUPA CANCHURICRA GERMAN", dia: "sabado" },
+  { nombre: "HENRIQUEZ MOSCOSO MARGARITA", dia: "jueves" },
+  { nombre: "VICTOR MUÑOZ ROJAS", dia: "jueves" },
+  { nombre: "MARIA GUZMAN ROSALES", dia: "jueves" },
+  { nombre: "MUNOZ ROJAS BERNARDO", dia: "jueves" },
+  { nombre: "ISABEL SAEZ PEREZ", dia: "jueves" },
+  { nombre: "BASCUNAN LAGOS FABIOLA DEL T.", dia: "jueves" },
+  { nombre: "MARCOS RICARDO VILLEGAS MUNOZ", dia: "jueves" },
+  { nombre: "NATALIA PEREZ GUZMAN", dia: "jueves" },
+  { nombre: "CAMILA AURORA CERDA SILVA", dia: "jueves" },
+  { nombre: "JOSE PIÑA MILLAO", dia: "jueves" },
+  { nombre: "MARIA ELENA CARRASCO", dia: "jueves" },
+  { nombre: "FABIAN ADOLFO GALAZ ROJAS", dia: "jueves" },
+  { nombre: "NATALIA ISABEL PEREZ GUZMAN", dia: "jueves" },
+  { nombre: "PATRICIO ENRIQUE ORTEGA ORTEGA", dia: "jueves" },
+  { nombre: "CRISTOBAL ANTONIO ACEVEDO MARTINEZ", dia: "jueves" },
+  { nombre: "CAMILA AURORA CERDA", dia: "jueves" },
+  { nombre: "JAVIER FUENTES FERNANDEZ", dia: "jueves" },
+  { nombre: "ALEJANDRA DE LAS MERCEDES AVILA ULLOA", dia: "jueves" },
+  { nombre: "BOTILLERIA TADEO SPA", dia: "jueves" },
+  { nombre: "MARIELA DEL PILAR FUENTES GUZMAN", dia: "jueves" },
+  { nombre: "BOTILLERIA MEGADRIKS SPA", dia: "jueves" },
+  { nombre: "FELISA MAGDALENA TORO SALAZAR", dia: "miercoles" },
+  { nombre: "CESAR CARCAMO ALVAREZ", dia: "miercoles" },
+  { nombre: "OLGA MONTENEGRO ARAYA", dia: "miercoles" },
+  { nombre: "COM LA CASTELLANA LTDA", dia: "miercoles" },
+  { nombre: "SUAREZ Y CIA", dia: "miercoles" },
+  { nombre: "RICHARD NEIRA CARRILLO", dia: "miercoles" },
+  { nombre: "RICARDO ARANEDA SANDOVAL", dia: "miercoles" },
+  { nombre: "MINIMARKET DE GONZALO LIMITADA", dia: "miercoles" },
+  { nombre: "GERMAN VILCANAUPA CANCHURICRA", dia: "miercoles" },
+  { nombre: "BOTILLERIA MI COMPADRE", dia: "miercoles" },
+  { nombre: "JUAN MUÑOZ MEDEL", dia: "miercoles" },
+  { nombre: "BOT. PATRICIO VELASQUEZ BRISO EIRL", dia: "miercoles" },
+  { nombre: "EL OFERTON SPA", dia: "miercoles" },
+  { nombre: "VASQUEZ ROMERO BERNARDO", dia: "miercoles" },
+  { nombre: "JCP CISTERNAS SPA", dia: "miercoles" },
+  { nombre: "RICARICARDO ANTONIO PONCE ZAGAL", dia: "miercoles" },
+  { nombre: "ANDRES SANDOVAL CABRERA", dia: "miercoles" },
+  { nombre: "LAURA CECILIA LIZAMA CRUZ", dia: "miercoles" },
+  { nombre: "GINA PRISCILA VALDIVIEZO CRESPO", dia: "miercoles" },
+  { nombre: "DONDE LOPEZ SPA", dia: "miercoles" },
+  { nombre: "BOTILLERIA DEL REY SPA", dia: "miercoles" },
+  { nombre: "EL CHILENO SPA", dia: "miercoles" },
+  { nombre: "HENRIQUEZ MOSCOSO MARGARITA", dia: "lunes" },
+  { nombre: "VICTOR MUÑOZ ROJAS", dia: "lunes" },
+  { nombre: "ROSA CAIGUAN OYARZUN", dia: "lunes" },
+  { nombre: "ISABEL SAEZ PEREZ", dia: "lunes" },
+  { nombre: "BASCUNAN LAGOS FABIOLA DEL T.", dia: "lunes" },
+  { nombre: "MARICEL SOTO FALFAN", dia: "lunes" },
+  { nombre: "JENNY AGUILERA AGUILERA", dia: "lunes" },
+  { nombre: "MARCOS RICARDO VILLEGAS MUNOZ", dia: "lunes" },
+  { nombre: "NATALIA PEREZ GUZMAN", dia: "lunes" },
+  { nombre: "CAMILA AURORA CERDA SILVA", dia: "lunes" },
+  { nombre: "JOSE PIÑA MILLAO", dia: "lunes" },
+  { nombre: "FABIAN ADOLFO GALAZ ROJAS", dia: "lunes" },
+  { nombre: "NATALIA ISABEL PEREZ GUZMAN", dia: "lunes" },
+  { nombre: "CRISTOBAL ANTONIO ACEVEDO MARTINEZ", dia: "lunes" },
+  { nombre: "CAMILA AURORA CERDA", dia: "lunes" },
+  { nombre: "LORENA IVONNE RIQUELME RIQUELME", dia: "lunes" },
+  { nombre: "MARJORIE ASTUDILLO LILLO", dia: "lunes" },
+  { nombre: "COMERCIAL EYF SPA", dia: "lunes" },
+  { nombre: "BOTILLERIA MEGADRIKS SPA", dia: "lunes" }
+];
+
+function clienteVacio(nombre, dia) {
+  return {
+    nombre,
+    dia: dia || 'lunes',
+    silver: false,
+    coors: false,
+    sol: false,
+    golden: false
+  };
+}
+
+function cargarDatos() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  let lista;
+  if (raw) {
+    try {
+      const data = JSON.parse(raw);
+      lista = data.map(c => {
+        // migración desde versión anterior con coberturas por día (c.dias)
+        if (c.dias && !c.dia) {
+          // buscar el primer día con alguna marca activa, si no, usar el día default del cliente original
+          const defaultMatch = clientesDefault.find(d => d.nombre.trim().toUpperCase() === c.nombre.trim().toUpperCase());
+          const diaAsignado = defaultMatch ? defaultMatch.dia : 'lunes';
+          const marcasDia = c.dias[diaAsignado] || {};
+          return clienteVacioConValores(c.nombre, diaAsignado, marcasDia);
+        }
+        // ya tiene estructura nueva
+        return {
+          nombre: c.nombre,
+          dia: c.dia || 'lunes',
+          silver: !!c.silver,
+          coors: !!c.coors,
+          sol: !!c.sol,
+          golden: !!c.golden
+        };
+      });
+    } catch(e) {
+      lista = clientesDefault.map(c => clienteVacio(c.nombre, c.dia));
+    }
+  } else {
+    lista = clientesDefault.map(c => clienteVacio(c.nombre, c.dia));
+  }
+
+  // agregar clientes default que no existan aún en la lista guardada (sin duplicar por nombre+día)
+  const clavesExistentes = lista.map(c => (c.nombre.trim().toUpperCase() + '|' + c.dia));
+  clientesDefault.forEach(c => {
+    const clave = c.nombre.trim().toUpperCase() + '|' + c.dia;
+    if (!clavesExistentes.includes(clave)) {
+      lista.push(clienteVacio(c.nombre, c.dia));
+      clavesExistentes.push(clave);
+    }
+  });
+
+  return lista;
+}
+
+function clienteVacioConValores(nombre, dia, marcas) {
+  return {
+    nombre,
+    dia: dia || 'lunes',
+    silver: !!marcas.silver,
+    coors: !!marcas.coors,
+    sol: !!marcas.sol,
+    golden: !!marcas.golden
+  };
+}
+
+function guardarDatos() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(clientes));
+}
+
+let clientes = cargarDatos();
+guardarDatos();
+let diaActual = 'jueves';
+let meta = parseInt(localStorage.getItem(STORAGE_KEY_META), 10) || null;
+
+function contarMarcados(c) {
+  return PRODUCTOS.reduce((acc, p) => acc + (c[p] ? 1 : 0), 0);
+}
+
+function sincronizarProducto(nombre, producto, valor) {
+  const clave = nombre.trim().toUpperCase();
+  clientes.forEach(c => {
+    if (c.nombre.trim().toUpperCase() === clave) {
+      c[producto] = valor;
+    }
+  });
+}
+
+function estadoDe(c) {
+  const n = contarMarcados(c);
+  if (n === 0) return 'rojo';
+  if (n < 4) return 'naranja';
+  return 'verde';
+}
+
+function render() {
+  const filtro = document.getElementById('search').value.trim().toLowerCase();
+  const tbody = document.getElementById('tablaBody');
+  tbody.innerHTML = '';
+
+  document.getElementById('diaTituloBar').textContent = 'DÍA: ' + DIAS_LABEL[diaActual];
+
+  let totalCoberturasCompletas = 0;
+  let totalClientesDia = 0;
+
+  clientes.forEach((c, idx) => {
+    if (c.dia !== diaActual) return;
+    if (filtro && !c.nombre.toLowerCase().includes(filtro)) return;
+
+    totalClientesDia++;
+
+    const estado = estadoDe(c);
+    if (estado === 'verde') totalCoberturasCompletas++;
+
+    const tr = document.createElement('tr');
+    tr.className = 'estado-' + estado;
+
+    const tdNombre = document.createElement('td');
+    tdNombre.className = 'client-name';
+    const inputName = document.createElement('input');
+    inputName.className = 'name-edit';
+    inputName.value = c.nombre;
+    inputName.addEventListener('change', () => {
+      clientes[idx].nombre = inputName.value;
+      guardarDatos();
+    });
+    tdNombre.appendChild(inputName);
+    tr.appendChild(tdNombre);
+
+    PRODUCTOS.forEach(p => {
+      const td = document.createElement('td');
+      const chk = document.createElement('input');
+      chk.type = 'checkbox';
+      chk.checked = !!c[p];
+      chk.addEventListener('change', () => {
+        sincronizarProducto(clientes[idx].nombre, p, chk.checked);
+        guardarDatos();
+        render();
+      });
+      td.appendChild(chk);
+      tr.appendChild(td);
+    });
+
+    const tdEstado = document.createElement('td');
+    tdEstado.className = 'col-estado';
+    const badge = document.createElement('span');
+    badge.className = 'estado-badge badge-' + estado;
+    badge.textContent = estado === 'verde' ? 'COMPLETA' : (estado === 'naranja' ? 'PARCIAL' : 'PENDIENTE');
+    tdEstado.appendChild(badge);
+    tr.appendChild(tdEstado);
+
+    const tdDel = document.createElement('td');
+    const delBtn = document.createElement('button');
+    delBtn.className = 'del-btn';
+    delBtn.textContent = '✕';
+    delBtn.addEventListener('click', () => {
+      if (confirm('¿Eliminar a "' + c.nombre + '"?')) {
+        clientes.splice(idx, 1);
+        guardarDatos();
+        render();
+      }
+    });
+    tdDel.appendChild(delBtn);
+    tr.appendChild(tdDel);
+
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('statClientes').textContent = totalClientesDia;
+  document.getElementById('statCoberturas').textContent = totalCoberturasCompletas;
+
+  const metaAlert = document.getElementById('metaAlert');
+  let avance, faltan;
+  if (meta && meta > 0) {
+    avance = Math.round((totalCoberturasCompletas / meta) * 100);
+    faltan = Math.max(meta - totalCoberturasCompletas, 0);
+    if (totalCoberturasCompletas >= meta) {
+      metaAlert.style.display = 'block';
+    } else {
+      metaAlert.style.display = 'none';
+    }
+  } else {
+    avance = totalClientesDia ? Math.round((totalCoberturasCompletas / totalClientesDia) * 100) : 0;
+    faltan = Math.max(totalClientesDia - totalCoberturasCompletas, 0);
+    metaAlert.style.display = 'none';
+  }
+  document.getElementById('statFaltan').textContent = faltan;
+  document.getElementById('statAvance').textContent = avance + '%';
+}
+
+document.getElementById('search').addEventListener('input', render);
+
+const metaInputEl = document.getElementById('metaInput');
+if (meta) metaInputEl.value = meta;
+metaInputEl.addEventListener('input', () => {
+  const val = parseInt(metaInputEl.value, 10);
+  meta = (val && val > 0) ? val : null;
+  if (meta) {
+    localStorage.setItem(STORAGE_KEY_META, String(meta));
+  } else {
+    localStorage.removeItem(STORAGE_KEY_META);
+  }
+  render();
+});
+
+document.getElementById('diaSelect').addEventListener('change', (e) => {
+  diaActual = e.target.value;
+  render();
+});
+
+document.getElementById('limpiarBtn').addEventListener('click', () => {
+  if (confirm('¿Limpiar las marcas de ' + DIAS_LABEL[diaActual] + ' para todos los clientes de ese día? Esto no borra los nombres.')) {
+    clientes.forEach(c => {
+      if (c.dia === diaActual) PRODUCTOS.forEach(p => c[p] = false);
+    });
+    guardarDatos();
+    render();
+  }
+});
+
+document.getElementById('agregarBtn').addEventListener('click', () => {
+  const input = document.getElementById('nuevoClienteInput');
+  const nombre = input.value.trim();
+  if (!nombre) return;
+  clientes.push(clienteVacio(nombre, diaActual));
+  input.value = '';
+  guardarDatos();
+  render();
+});
+
+document.getElementById('nuevoClienteInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('agregarBtn').click();
+});
+
+document.getElementById('exportBtn').addEventListener('click', () => {
+  let texto = 'CONTROL DE COBERTURAS — ' + DIAS_LABEL[diaActual] + '\n\n';
+  clientes.filter(c => c.dia === diaActual).forEach(c => {
+    const marcados = PRODUCTOS.filter(p => c[p]).map(p => p.toUpperCase());
+    const estado = estadoDe(c).toUpperCase();
+    texto += c.nombre + ' — ' + (marcados.length ? marcados.join(', ') : 'ninguno') + ' [' + estado + ']\n';
+  });
+  if (navigator.share) {
+    navigator.share({ title: 'Control de Coberturas', text: texto }).catch(()=>{});
+  } else {
+    navigator.clipboard.writeText(texto).then(() => alert('Resumen copiado al portapapeles.'));
+  }
+});
+
+render();
+</script>
+
+</body>
+</html>
